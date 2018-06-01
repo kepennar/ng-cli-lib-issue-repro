@@ -1,27 +1,83 @@
-# LibImportIssueRepro
+# Issue repro project
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 6.0.7.
 
-## Development server
+## Issue description
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+Given a library managed by the new angular-cli v6 library managment system.
 
-## Code scaffolding
+Given a component `Comp1Component` of this lib imported from a barrel `index.ts` in a module `LibModule`
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+`projects/lib1/src/lib/components/index.ts`
 
-## Build
+```ts
+export * from './comp1.component';
+```
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+`projects/lib1/src/lib/lib.module.ts`
 
-## Running unit tests
+```ts
+import { Comp1Component } from './components';
+// ...
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+@NgModule({
+  declarations: [Comp1Component],
+  exports: [Comp1Component]
+})
+export class LibModule {}
+```
 
-## Running end-to-end tests
+When an application using this lib is launched in `prod` mode
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Then build crash with the error
 
-## Further help
+```log
+ERROR in : Unexpected value 'undefined' exported by the module 'Lib1Module ...
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+If the component is directly imported from it's own file. It's work
+
+`projects/lib1/src/lib/lib.module.ts`
+```ts
+import { Comp1Component } from './components/comp1.component';
+@NgModule({
+  declarations: [Comp1Component],
+  exports: [Comp1Component]
+})
+export class LibModule {}
+```
+
+### Reproduction steps
+
+`npm run build:lib`
+`npm run start:prod`
+
+Output from: `ng --version`.
+
+```log
+Angular CLI: 6.0.7
+Node: 10.3.0
+OS: linux x64
+Angular: 6.0.3
+... animations, common, compiler, compiler-cli, core, forms
+... http, language-service, platform-browser
+... platform-browser-dynamic, router
+
+Package                            Version
+------------------------------------------------------------
+@angular-devkit/architect          0.6.7
+@angular-devkit/build-angular      0.6.7
+@angular-devkit/build-ng-packagr   0.6.7
+@angular-devkit/build-optimizer    0.6.7
+@angular-devkit/core               0.6.7
+@angular-devkit/schematics         0.6.7
+@angular/cli                       6.0.7
+@ngtools/json-schema               1.1.0
+@ngtools/webpack                   6.0.7
+@schematics/angular                0.6.7
+@schematics/update                 0.6.7
+ng-packagr                         3.0.0
+rxjs                               6.2.0
+typescript                         2.7.2
+webpack                            4.8.3
+```
